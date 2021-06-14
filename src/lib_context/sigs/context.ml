@@ -1,7 +1,10 @@
 (*****************************************************************************)
 (*                                                                           *)
 (* Open Source License                                                       *)
+(* Copyright (c) 2018 Dynamic Ledger Solutions, Inc. <contact@tezos.com>     *)
+(* Copyright (c) 2018-2021 Nomadic Labs <contact@nomadic-labs.com>           *)
 (* Copyright (c) 2018-2021 Tarides <contact@tarides.com>                     *)
+(* Copyright (c) 2020 Metastate AG <hello@metastate.dev>                     *)
 (*                                                                           *)
 (* Permission is hereby granted, free of charge, to any person obtaining a   *)
 (* copy of this software and associated documentation files (the "Software"),*)
@@ -119,6 +122,8 @@ module type VIEW = sig
     'a Lwt.t
 
   (** {2 Configuration} *)
+  val to_memory_tree :
+    t -> string list -> Tezos_context_memory.Context.tree option Lwt.t
 
   (** [config t] is [t]'s hash configuration. *)
   val config : t -> Config.t
@@ -542,47 +547,14 @@ module type TRUC = sig
   (** [verify_stream] is the verifier of stream proofs. *)
   val verify_stream_proof : (stream_proof, 'a) verifier
 end
-(*****************************************************************************)
-(*                                                                           *)
-(* Open Source License                                                       *)
-(* Copyright (c) 2018 Dynamic Ledger Solutions, Inc. <contact@tezos.com>     *)
-(* Copyright (c) 2018-2021 Nomadic Labs <contact@nomadic-labs.com>           *)
-(* Copyright (c) 2018-2020 Tarides <contact@tarides.com>                     *)
-(* Copyright (c) 2020 Metastate AG <hello@metastate.dev>                     *)
-(*                                                                           *)
-(* Permission is hereby granted, free of charge, to any person obtaining a   *)
-(* copy of this software and associated documentation files (the "Software"),*)
-(* to deal in the Software without restriction, including without limitation *)
-(* the rights to use, copy, modify, merge, publish, distribute, sublicense,  *)
-(* and/or sell copies of the Software, and to permit persons to whom the     *)
-(* Software is furnished to do so, subject to the following conditions:      *)
-(*                                                                           *)
-(* The above copyright notice and this permission notice shall be included   *)
-(* in all copies or substantial portions of the Software.                    *)
-(*                                                                           *)
-(* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR*)
-(* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  *)
-(* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL   *)
-(* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER*)
-(* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING   *)
-(* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER       *)
-(* DEALINGS IN THE SOFTWARE.                                                 *)
-(*                                                                           *)
-(*****************************************************************************)
-
-type error +=
-  | Cannot_create_file of string
-  | Cannot_open_file of string
-  | Cannot_find_protocol
-  | Suspicious_file of int
 
 (** Tezos - Versioned, block indexed (key x value) store *)
-module Make (Encoding : module type of Tezos_context_encoding.Context) : sig
+module type MACHIN = sig
   (** {2 Generic interface} *)
 
   module type S = sig
     (** @inline *)
-    include Tezos_context_sigs.Context.TRUC
+    include TRUC
   end
 
   (** A block-indexed (key x value) store directory.  *)
@@ -598,6 +570,8 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) : sig
   val init :
     ?patch_context:(context -> context tzresult Lwt.t) ->
     ?readonly:bool ->
+    ?indexing_strategy:[`Always | `Minimal] ->
+    ?index_log_size:int ->
     string ->
     index Lwt.t
 
@@ -697,13 +671,21 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) : sig
   (** {2 Context dumping} *)
 
   val dump_context :
-    index -> Context_hash.t -> fd:Lwt_unix.file_descr -> int tzresult Lwt.t
+    index ->
+    Proof.hash ->
+    fd:Lwt_unix.file_descr ->
+    on_disk:bool ->
+    progress_display_mode:Animation.progress_display_mode ->
+    int tzresult Lwt.t
 
   val restore_context :
     index ->
-    expected_context_hash:Context_hash.t ->
+    expected_context_hash:Proof.hash ->
     nb_context_elements:int ->
     fd:Lwt_unix.file_descr ->
+    legacy:bool ->
+    in_memory:bool ->
+    progress_display_mode:Animation.progress_display_mode ->
     unit tzresult Lwt.t
 
   val retrieve_commit_info :
