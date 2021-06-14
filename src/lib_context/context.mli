@@ -38,7 +38,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) : sig
 
   module type S = sig
     (** @inline *)
-    include Tezos_context_sigs.Context.S
+    include Tezos_context_sigs.Context.TRUC
   end
 
   (** A block-indexed (key x value) store directory.  *)

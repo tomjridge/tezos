@@ -26,7 +26,7 @@
 (** View over the context store, restricted to types, access and
     functional manipulation of an existing context. *)
 
-(* Copy/paste of Environment_context_sigs.Context.S *)
+(* Copy/paste of Environment_context_sigs.Context.TRUC *)
 
 module type VIEW = sig
   (** The type for context views. *)

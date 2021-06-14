@@ -248,7 +248,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
 
   let index {index; _} = index
 
-  module type S = Tezos_context_sigs.Context.S
+  module type S = Tezos_context_sigs.Context.TRUC
 
   (*-- Version Access and Update -----------------------------------------------*)
 

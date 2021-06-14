@@ -401,7 +401,7 @@ module type PROOF_ENCODING = sig
   val stream_proof_encoding : stream t Data_encoding.t
 end
 
-module type S = sig
+module type TRUC = sig
   val equal_config : Config.t -> Config.t -> bool
 
   include VIEW with type key = string list and type value = bytes

@@ -26,7 +26,7 @@
 (** View over the context store, restricted to types, access and
     functional manipulation of an existing context. *)
 
-(* Copy/paste of Environment_context_sigs.Context.S *)
+(* Copy/paste of Environment_context_sigs.Context.TRUC *)
 
 (** The tree depth of a fold. See the [fold] function for more information. *)
 type depth = [`Eq of int | `Le of int | `Lt of int | `Ge of int | `Gt of int]
