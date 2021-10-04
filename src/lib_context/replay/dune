@@ -1,0 +1,22 @@
+(library
+ (name tezos_context_replay)
+ (public_name tezos-context.replay)
+ (libraries tezos-base
+            tezos-context.sigs
+            tezos-context.recording
+            cohttp-lwt-unix
+            progress
+            repr
+            ppx_repr
+            yojson
+            ppx_deriving_yojson
+)
+(modules
+  replay_actions_trace_definitions
+  raw_trace_actions_to_replayable
+  trace_replay
+  trace_replay_intf
+  tzstat_metrics)
+(preprocess
+  (pps ppx_repr ppx_deriving.enum ppx_deriving_yojson))
+(flags (:standard  -open Tezos_base__TzPervasives)))

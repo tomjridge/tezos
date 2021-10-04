@@ -41,6 +41,8 @@ TEZOS_BIN=tezos-node tezos-validator tezos-client tezos-admin-client tezos-signe
 		  $(shell if [ -f $(call directory_of_version,$p)/bin_endorser/dune ]; then \
 		             echo tezos-endorser-$(p); fi)) \
 
+CONTEXT_BIN=manage_stats manage_actions replay
+
 UNRELEASED_TEZOS_BIN=$(foreach p, $(tx_rollup_protocol_versions), tezos-tx-rollup-node-$p) \
    $(foreach p, $(tx_rollup_protocol_versions), tezos-tx-rollup-client-$p) \
    $(foreach p, $(sc_rollup_protocol_versions), tezos-sc-rollup-node-$p) \
@@ -92,6 +94,7 @@ ifneq (${current_ocaml_version},${ocaml_version})
 endif
 	@dune build --profile=$(PROFILE) $(COVERAGE_OPTIONS) \
 		$(foreach b, $(TEZOS_BIN), _build/install/default/bin/${b}) \
+		$(foreach b, $(CONTEXT_BIN), src/bin_context/${b}.exe) \
 		@copy-parameters
 	@cp -f $(foreach b, $(TEZOS_BIN), _build/install/default/bin/${b}) ./
 

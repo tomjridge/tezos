@@ -1,0 +1,20 @@
+(executable
+ (name manage_stats)
+ (modules manage_stats)
+ (libraries cmdliner tezos-context.recording tezos-hacl-glue-unix))
+
+(executable
+  (name replay)
+  (modules replay)
+  (libraries cmdliner
+             tezos-context
+             tezos-context.replay
+             tezos-hacl-glue-unix))
+
+(executable
+  (name manage_actions)
+  (modules manage_actions)
+  (libraries cmdliner
+             tezos-hacl-glue-unix
+             tezos-context.recording
+             tezos-context.replay))
