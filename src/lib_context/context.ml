@@ -107,24 +107,6 @@ let reporter () =
   in
   {Logs.report}
 
-(* Caps the number of entries stored in the Irmin's index. As a
-   trade-off, increasing this value will delay index merges, and thus,
-   make them more expensive in terms of disk usage, memory usage and
-   computation time.*)
-let index_log_size = ref 2_500_000
-
-(* Caps the number of entries stored in the Irmin's LRU cache. As a
-   trade-off, increasing this value will increase the memory
-   consumption.*)
-let lru_size = ref 5_000
-
-(* This limit ensures that no trees with more than [auto_flush]
-   mutations can exist in memory, bounding the memory usage of a
-   single commit performed by a read-write process. As a trade-off,
-   the intermediate flushed trees to the store might be unused and
-   will have to be garbage collected later on to save space. *)
-let auto_flush = ref 10_000
-
 module Indexing_strategy : sig
   (* Determines the policy used to determine whether to add new
      objects to Irmin's index whenever they are exported to the
@@ -165,41 +147,14 @@ end = struct
 end
 
 let () =
-  let verbose_info () =
-    Logs.set_level (Some Logs.Info) ;
-    Logs.set_reporter (reporter ())
-  in
-  let verbose_debug () =
-    Logs.set_level (Some Logs.Debug) ;
-    Logs.set_reporter (reporter ())
-  in
-  let index_log_size n = index_log_size := int_of_string n in
-  let auto_flush n = auto_flush := int_of_string n in
-  let lru_size n = lru_size := int_of_string n in
-  let indexing_strategy x =
-    match Indexing_strategy.parse x with
-    | Ok x -> Indexing_strategy.set x
-    | Error msg ->
-        Fmt.failwith
-          "Invalid value for TEZOS_CONTEXT environment variable: %s"
-          msg
-  in
-  match Unix.getenv "TEZOS_CONTEXT" with
-  | exception Not_found -> ()
-  | v ->
-      let args = String.split_no_empty ',' v in
-      List.iter
-        (function
-          | "v" | "verbose" -> verbose_info ()
-          | "vv" -> verbose_debug ()
-          | v -> (
-              match String.split_no_empty '=' v with
-              | ["index-log-size"; n] -> index_log_size n
-              | ["auto-flush"; n] -> auto_flush n
-              | ["lru-size"; n] -> lru_size n
-              | ["indexing-strategy"; x] -> indexing_strategy x
-              | _ -> ()))
-        args
+  match Env.(v.verbosity) with
+  | `Info ->
+      Logs.set_level (Some Logs.Info) ;
+      Logs.set_reporter (reporter ())
+  | `Debug ->
+      Logs.set_level (Some Logs.Debug) ;
+      Logs.set_reporter (reporter ())
+  | `Default -> ()
 
 module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
   open Encoding
@@ -399,7 +354,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
     {context with ops = 0}
 
   let may_flush context =
-    if (not context.index.readonly) && context.ops >= !auto_flush then
+    if (not context.index.readonly) && context.ops >= Env.(v.auto_flush) then
       flush context
     else Lwt.return context
 
@@ -671,8 +626,8 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
         (Irmin_pack.config
            ~readonly
            ~indexing_strategy
-           ~index_log_size
-           ~lru_size:!lru_size
+           ~index_log_size:Env.(v.index_log_size)
+           ~lru_size:Env.(v.lru_size)
            root)
     in
     {path = root; repo; patch_context; readonly}
