@@ -901,7 +901,7 @@ struct
         (* 6 - compute the summary, *)
         let stats_path = Stat_recorder.get_stat_path () in
         Some
-          (Trace_stats_summary.summarise ~info:(block_count, true) stats_path))
+          (Trace_stats_summary.summarise ~info:(false, block_count, true) stats_path))
       else None
     in
 

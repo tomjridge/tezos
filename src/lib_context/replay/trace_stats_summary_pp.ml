@@ -396,7 +396,8 @@ module Table1 = struct
     in
     let max_ram =
       List.map
-        (fun s -> s.rusage.maxrss.value_after_commit.max_value |> fst)
+        (fun s ->
+          (s.rusage.maxrss.value_after_commit.max_value |> fst) *. 1000.)
         summaries
     in
     let mean_cpu_usage =
@@ -425,7 +426,7 @@ module Table1 = struct
       `Data (`RM, "  throughput (bytes/sec)", write_throughput);
       `Data (`RG, "  total (bytes)", written_bytes);
       `Section "";
-      `Data (`RG, "max memory usage", max_ram);
+      `Data (`RG, "max memory usage (bytes)", max_ram);
       `Data (`P, "mean CPU usage", mean_cpu_usage);
     ]
 
