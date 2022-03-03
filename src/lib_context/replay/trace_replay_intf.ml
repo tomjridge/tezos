@@ -44,7 +44,7 @@ end
 module type Sigs = sig
   type nonrec config = config
 
-  module Make (Impl : Tezos_context_sigs.Context.S) (Conf : Config) : sig
+  module Make (Impl : Tezos_context_sigs.Context.MACHIN) (Conf : Config) : sig
     val run : unit -> unit Lwt.t
   end
 end

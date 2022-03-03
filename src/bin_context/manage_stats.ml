@@ -25,6 +25,7 @@
 
 (** [manage_stats.exe --help] *)
 
+open Tezos_context_replay
 open Tezos_context_recording
 module Def = Stats_trace_definition
 module Summary = Trace_stats_summary

@@ -27,8 +27,6 @@ include Trace_replay_intf
 open Lwt.Syntax
 module TzPervasives = Tezos_base.TzPervasives
 module Def = Replay_actions_trace_definitions
-module Trace_stats_summary = Tezos_context_recording.Trace_stats_summary
-module Trace_stats_summary_pp = Tezos_context_recording.Trace_stats_summary_pp
 
 (** Use List from Stdlib instead of the Tezos one. *)
 module List = Stdlib.List
@@ -52,7 +50,7 @@ let prepare_artefacts_dir path =
   mkdir_p path
 
 (** [with_progress_bar ~message ~n ~unit] will create a progress bar with
-     a [message] displayed, using [unit] for values and, with [n] max 
+     a [message] displayed, using [unit] for values and, with [n] max
      elements. *)
 let with_progress_bar ~message ~n ~unit =
   let open Progress in
@@ -138,7 +136,7 @@ let open_reader max_block_count path =
   in
   (version, block_count, header, Seq.unfold aux (ops_seq, 0))
 
-module Make (Context : Tezos_context_sigs.Context.S) (Raw_config : Config) =
+module Make (Context : Tezos_context_sigs.Context.MACHIN) (Raw_config : Config) =
 struct
   module type RECORDER =
     Tezos_context_recording.Recorder.S with module Impl = Context
@@ -642,9 +640,10 @@ struct
       if row.uses_patch_context then Some patch_context else None
     in
     let store_dir = Filename.concat rs.config.artefacts_dir "store" in
+    assert (Raw_config.v.indexing_strategy = `Always);
     let* index =
       Context.init
-        ~indexing_strategy:Raw_config.v.indexing_strategy
+        (* ~indexing_strategy:Raw_config.v.indexing_strategy *)
         ~readonly
         ?patch_context
         store_dir

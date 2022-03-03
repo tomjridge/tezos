@@ -42,7 +42,7 @@ let main indexing_strategy block_count startup_store_type replayable_trace_path
   in
   let module Replay =
     Trace_replay.Make
-      (Tezos_context.Context_impl)
+      (Tezos_context.Context)
       (struct
         let v : Trace_replay.config =
           {

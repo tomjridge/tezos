@@ -25,7 +25,7 @@
 
 open Cmdliner
 module Rawdef = Tezos_context_recording.Raw_actions_trace_definition
-module Summary = Tezos_context_recording.Trace_raw_actions_summary
+module Summary = Tezos_context_replay.Trace_raw_actions_summary
 module Trace_raw_actions_to_replayable =
   Tezos_context_replay.Raw_trace_actions_to_replayable
 

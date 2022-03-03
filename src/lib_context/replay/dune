@@ -16,7 +16,16 @@
   raw_trace_actions_to_replayable
   trace_replay
   trace_replay_intf
-  tzstat_metrics)
+  tzstat_metrics
+
+ trace_raw_actions_summary
+ trace_stats_summary
+; trace_stats_summary_cb
+trace_stats_summary_conf
+trace_stats_summary_pp
+trace_stats_summary_utils
+
+)
 (preprocess
   (pps ppx_repr ppx_deriving.enum ppx_deriving_yojson))
 (flags (:standard  -open Tezos_base__TzPervasives)))

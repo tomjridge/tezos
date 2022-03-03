@@ -33,10 +33,11 @@
     Computing a summary may take a long time if the input [Stats_trace] is long.
     Count ~1000 commits per second. *)
 
-module Def = Stats_trace_definition
+module Def = Tezos_context_recording.Stats_trace_definition
 module Conf = Trace_stats_summary_conf
 module Utils = Trace_stats_summary_utils
 module Vs = Utils.Variable_summary
+module Trace_common = Tezos_context_recording.Trace_common
 
 (* Section 1/4 - Type of a summary. *)
 
@@ -203,13 +204,13 @@ module Span = struct
   end
 
   module Map = struct
-    module M = Map.Make (struct
+    module M = Stdlib.Map.Make (struct
       type t = Key.t
 
       let compare = compare
     end)
 
-    include M.Legacy
+    include M
   end
 
   type map = Val.t Map.t
@@ -254,13 +255,13 @@ module Watched_node = struct
   end
 
   module Map = struct
-    module M = Map.Make (struct
+    module M = Stdlib.Map.Make (struct
       type t = Key.t
 
       let compare = compare
     end)
 
-    include M.Legacy
+    include M
   end
 
   type map = Val.t Map.t
