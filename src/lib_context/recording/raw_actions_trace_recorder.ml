@@ -37,10 +37,10 @@ module Def = Raw_actions_trace_definition
 *)
 let system_wide_now () =
   Mtime_clock.now () |> Mtime.to_uint64_ns |> Int64.to_float
-  |> ( *. ) Mtime.ns_to_s
+  |> ( *. ) 1e-9
 
 module Make
-    (Impl : Tezos_context_sigs.Context.S) (Trace_config : sig
+    (Impl : Tezos_context_sigs.Context.MACHIN) (Trace_config : sig
       val prefix : string
     end) =
 struct

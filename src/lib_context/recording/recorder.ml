@@ -55,10 +55,14 @@ type unhandled =
   | Legacy_restore_contexts
   | Legacy_get_protocol_data_from_header
   | Legacy_dump_snapshot
+  | Produce_tree_proof
+  | Verify_tree_proof
+  | Produce_stream_proof
+  | Verify_stream_proof
 [@@deriving repr]
 
 module type S = sig
-  module Impl : Tezos_context_sigs.Context.S
+  module Impl : Tezos_context_sigs.Context.MACHIN
 
   (** A [Context.tree] alongside a unique identifier. *)
   type tree = Impl.tree * Optint.Int63.t

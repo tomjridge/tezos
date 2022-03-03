@@ -93,11 +93,11 @@ end
 (** Seemlessly wrap [Impl] while notifying the [Recorders] of what's
     happening. *)
 module Make
-    (Impl : Tezos_context_sigs.Context.S) (Recorders : sig
+    (Impl : Tezos_context_sigs.Context.MACHIN) (Recorders : sig
       module type RECORDER = Recorder.S with module Impl = Impl
 
       val l : (module RECORDER) list
-    end) : Tezos_context_sigs.Context.S = struct
+    end) : Tezos_context_sigs.Context.MACHIN = struct
   (** Instanciate the tree tracker *)
   module Tree_traced = Make_tracked (struct
     type t = Impl.tree
@@ -166,7 +166,9 @@ module Make
 
   type key = Impl.key
 
-  type tree_stats = Impl.tree_stats = {
+  type kinded_key = Impl.kinded_key
+
+  type tree_stats = Impl.tree_stats = private {
     nodes : int;
     leafs : int;
     skips : int;
@@ -174,7 +176,7 @@ module Make
     width : int;
   }
 
-  type module_tree_stats = Impl.module_tree_stats = {
+  type module_tree_stats = Impl.module_tree_stats = private {
     mutable contents_hash : int;
     mutable contents_find : int;
     mutable contents_add : int;
@@ -189,15 +191,7 @@ module Make
     mutable node_val_list : int;
   }
 
-  module type S = Tezos_context_sigs.Context.MEM
-
-  type error += Cannot_create_file = Impl.Cannot_create_file
-
-  type error += Cannot_open_file = Impl.Cannot_open_file
-
-  type error += Cannot_find_protocol = Impl.Cannot_find_protocol
-
-  type error += Suspicious_file = Impl.Suspicious_file
+  module type S = Tezos_context_sigs.Context.TRUC
 
   module Tree = struct
     type raw = Impl.Tree.raw
@@ -355,7 +349,9 @@ module Make
 
     let shallow x y =
       record_unhandled_direct Recorder.Tree_shallow @@ fun () ->
-      Impl.Tree.shallow x y >|= Tree_traced.wrap
+      Impl.Tree.shallow x y |> Tree_traced.wrap
+
+    let is_shallow t = Impl.Tree.is_shallow (Tree_traced.unwrap t)
 
     let to_raw x =
       record_unhandled Recorder.Tree_to_raw
@@ -368,10 +364,6 @@ module Make
     let length x y =
       record_unhandled Recorder.Tree_length
       @@ Impl.Tree.length (Tree_traced.unwrap x) y
-
-    let stats x =
-      record_unhandled Recorder.Tree_stats
-      @@ Impl.Tree.stats (Tree_traced.unwrap x)
 
     (* not tracked and not wrapped *)
 
@@ -661,8 +653,8 @@ module Make
 
   (* [__ ~~ _o_] *)
 
-  let init ?patch_context:user_patch_context_opt ?readonly ?indexing_strategy x
-      =
+  let init ?patch_context:user_patch_context_opt ?readonly
+      (* ?indexing_strategy *) x =
     let create_local_patch_context user_patch_context ctx =
       let ctx = Context_traced.wrap ctx in
       let record_and_return_output =
@@ -685,7 +677,7 @@ module Make
     Impl.init
       ?patch_context:local_patch_context_opt
       ?readonly
-      ?indexing_strategy
+      (* ?indexing_strategy *)
       x
     >|= fun res -> record_and_return_output res |> Index_abstract.wrap
 
@@ -694,8 +686,8 @@ module Make
   let length x y =
     record_unhandled Recorder.Length @@ Impl.length (Context_traced.unwrap x) y
 
-  let stats x =
-    record_unhandled Recorder.Stats @@ Impl.stats (Context_traced.unwrap x)
+  let tree_stats x =
+    record_unhandled Recorder.Stats @@ Impl.tree_stats (Tree_traced.unwrap x)
 
   let restore_context x ~expected_context_hash ~nb_context_elements ~fd =
     let x = Index_abstract.unwrap x in
@@ -732,6 +724,40 @@ module Make
          ~data_merkle_root
          ~parents_contexts
 
+  let index x = Impl.index (Context_traced.unwrap x) |> Index_abstract.wrap
+
+  let produce_tree_proof index kinded_key f =
+    record_unhandled_direct Recorder.Produce_tree_proof (Fun.const ()) ;
+    let index = Index_abstract.unwrap index in
+    let f t =
+      f (Tree_traced.wrap t) >|= fun (t, res) -> (Tree_traced.unwrap t, res)
+    in
+    Impl.produce_tree_proof index kinded_key f
+
+  let verify_tree_proof proof f =
+    record_unhandled_direct Recorder.Verify_tree_proof (Fun.const ()) ;
+    let f t =
+      f (Tree_traced.wrap t) >|= fun (t, res) -> (Tree_traced.unwrap t, res)
+    in
+    Impl.verify_tree_proof proof f >|= fun res ->
+    Result.map (fun (t, res) -> (Tree_traced.wrap t, res)) res
+
+  let produce_stream_proof index kinded_key f =
+    record_unhandled_direct Recorder.Produce_stream_proof (Fun.const ()) ;
+    let index = Index_abstract.unwrap index in
+    let f t =
+      f (Tree_traced.wrap t) >|= fun (t, res) -> (Tree_traced.unwrap t, res)
+    in
+    Impl.produce_stream_proof index kinded_key f
+
+  let verify_stream_proof proof f =
+    record_unhandled_direct Recorder.Verify_stream_proof (Fun.const ()) ;
+    let f t =
+      f (Tree_traced.wrap t) >|= fun (t, res) -> (Tree_traced.unwrap t, res)
+    in
+    Impl.verify_stream_proof proof f >|= fun res ->
+    Result.map (fun (t, res) -> (Tree_traced.wrap t, res)) res
+
   (* not tracked and not wrapped *)
 
   let module_tree_stats = Impl.module_tree_stats
@@ -741,6 +767,7 @@ module Make
   let compute_testchain_chain_id = Impl.compute_testchain_chain_id
 
   module Checks = Impl.Checks
+  module Proof = Impl.Proof
 
   let get_hash_version _ = assert false
 

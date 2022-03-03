@@ -31,7 +31,7 @@ module Def = Stats_trace_definition
 
 (** Stats trace writer, to be instanciated from replay or from tezos-node using
     [Make] (below). *)
-module Writer (Impl : Tezos_context_sigs.Context.S) = struct
+module Writer (Impl : Tezos_context_sigs.Context.MACHIN) = struct
   let is_darwin =
     try
       match Unix.open_process_in "uname" |> input_line with
@@ -201,7 +201,7 @@ module Writer (Impl : Tezos_context_sigs.Context.S) = struct
 
     let now () =
       Mtime_clock.now () |> Mtime.to_uint64_ns |> Int64.to_float
-      |> ( *. ) Mtime.ns_to_s
+      |> ( *. ) 1e-9
 
     let create store_path prev_merge_durations =
       Def.
@@ -226,7 +226,9 @@ module Writer (Impl : Tezos_context_sigs.Context.S) = struct
   let create_store_before context =
     let+ Impl.{nodes; leafs; skips; depth; width} =
       (* This call directly targets [Impl], it will not be recorded *)
-      Impl.stats context
+      Impl.find_tree context [] >>= function
+      | None -> assert false
+      | Some t -> Impl.tree_stats t
     in
     Def.{nodes; leafs; skips; depth; width}
 
@@ -235,9 +237,9 @@ module Writer (Impl : Tezos_context_sigs.Context.S) = struct
       Lwt_list.map_s
         (fun (_, steps) ->
           (* This call directly targets [Impl], it will not be recorded. *)
-          Impl.length context steps >|= function
-          | None -> Float.nan
-          | Some v -> Float.of_int v)
+          Lwt.catch
+            (fun () -> Impl.length context steps >|= Float.of_int)
+            (fun _exn -> Lwt.return Float.nan))
         Def.step_list_per_watched_node
     in
     Lwt.return Def.{watched_nodes_length}
@@ -401,7 +403,7 @@ module Writer (Impl : Tezos_context_sigs.Context.S) = struct
 end
 
 module Make
-    (Impl : Tezos_context_sigs.Context.S) (Trace_config : sig
+    (Impl : Tezos_context_sigs.Context.MACHIN) (Trace_config : sig
       val prefix : string
 
       val message : string option
