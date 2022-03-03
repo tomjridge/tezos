@@ -727,4 +727,33 @@ module type MACHIN = sig
 
     module Index : Index.Checks.S
   end
+
+  (** The type for tree stats. *)
+  type tree_stats = private {
+    nodes : int;
+    leafs : int;
+    skips : int;
+    depth : int;
+    width : int;
+  }
+
+  val tree_stats : tree -> tree_stats Lwt.t
+
+  (** Module-wise stats for all tree operations *)
+  type module_tree_stats = private {
+    mutable contents_hash : int;
+    mutable contents_find : int;
+    mutable contents_add : int;
+    mutable contents_mem : int;
+    mutable node_hash : int;
+    mutable node_mem : int;
+    mutable node_index : int;
+    mutable node_add : int;
+    mutable node_find : int;
+    mutable node_val_v : int;
+    mutable node_val_find : int;
+    mutable node_val_list : int;
+  }
+
+  val module_tree_stats : unit -> module_tree_stats
 end

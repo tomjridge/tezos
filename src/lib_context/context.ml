@@ -328,6 +328,33 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
   let fold ?depth ctxt key ~order ~init ~f =
     Tree.fold ?depth ctxt.tree (data_key key) ~order ~init ~f
 
+  type tree_stats = Store.Tree.stats = {
+    nodes : int;
+    leafs : int;
+    skips : int;
+    depth : int;
+    width : int;
+  }
+
+  let tree_stats tree = Store.Tree.stats tree
+
+  type module_tree_stats = Store.Tree.counters = {
+    mutable contents_hash : int;
+    mutable contents_find : int;
+    mutable contents_add : int;
+    mutable contents_mem : int;
+    mutable node_hash : int;
+    mutable node_mem : int;
+    mutable node_index : int;
+    mutable node_add : int;
+    mutable node_find : int;
+    mutable node_val_v : int;
+    mutable node_val_find : int;
+    mutable node_val_list : int;
+    }
+
+  let module_tree_stats = Store.Tree.counters
+
   (** The light mode relies on the implementation of this
     function, because it uses Irmin.Type.of_string to rebuild values
     of type Irmin.Hash.t. This is a temporary workaround until we
