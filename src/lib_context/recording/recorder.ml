@@ -41,6 +41,8 @@
 
     WARNING: Do not ever remove tag from this list, only add new ones. *)
 type unhandled =
+  | Tree_config
+  | Tree_kinded_key
   | Tree_shallow
   | Tree_to_raw
   | Tree_pp
@@ -59,6 +61,11 @@ type unhandled =
   | Verify_tree_proof
   | Produce_stream_proof
   | Verify_stream_proof
+  | Index_empty
+  | Context_is_empty
+  | Config
+  | Equal_config
+  | To_memory_tree
 [@@deriving repr]
 
 module type S = sig
@@ -168,7 +175,7 @@ module type S = sig
     context ->
     Block_services.merkle_leaf_kind ->
     string list ->
-    Block_services.merkle_node TzString.Map.t output
+    Block_services.merkle_tree output
 
   val find_predecessor_block_metadata_hash :
     context -> Block_metadata_hash.t option output
@@ -257,11 +264,16 @@ module type S = sig
     expected_context_hash:Context_hash.t ->
     nb_context_elements:int ->
     fd:Lwt_unix.file_descr ->
+    legacy:bool ->
+    in_memory:bool ->
+    progress_display_mode:Animation.progress_display_mode ->
     unit tzresult output_lwt
 
   val dump_context :
     Impl.index ->
     Context_hash.t ->
     fd:Lwt_unix.file_descr ->
+    on_disk:bool ->
+    progress_display_mode:Animation.progress_display_mode ->
     int tzresult output_lwt
 end

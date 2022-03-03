@@ -6,6 +6,7 @@
             tezos-stdlib-unix
             tezos-context.encoding
             tezos-context.sigs
+            tezos-context.memory
             repr
             irmin
             rusage bentov printbox printbox-text)

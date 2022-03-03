@@ -351,7 +351,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
     mutable node_val_v : int;
     mutable node_val_find : int;
     mutable node_val_list : int;
-    }
+  }
 
   let module_tree_stats = Store.Tree.counters
 
@@ -391,6 +391,8 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
       ~contents
       tree
       Tezos_context_memory.Context.(Tree.empty empty)
+
+  type memory_tree = Tezos_context_memory.Context.tree
 
   let to_memory_tree (ctxt : t) (key : string list) :
       Tezos_context_memory.Context.tree option Lwt.t =

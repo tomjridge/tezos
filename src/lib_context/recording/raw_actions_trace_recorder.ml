@@ -36,8 +36,7 @@ module Def = Raw_actions_trace_definition
     best option.
 *)
 let system_wide_now () =
-  Mtime_clock.now () |> Mtime.to_uint64_ns |> Int64.to_float
-  |> ( *. ) 1e-9
+  Mtime_clock.now () |> Mtime.to_uint64_ns |> Int64.to_float |> ( *. ) 1e-9
 
 module Make
     (Impl : Tezos_context_sigs.Context.MACHIN) (Trace_config : sig
@@ -102,7 +101,7 @@ struct
         | `Value v -> `Value v
         | `Tree map ->
             `Tree
-              (TzString.Map.bindings map
+              (String.Map.bindings map
               |> List.map (fun (step, raw) -> (step, aux raw)))
       in
       Def.Tree.Of_raw (aux raw, res) |> push
@@ -347,12 +346,13 @@ struct
       let res = match res with Error _ -> Error () | Ok (_, res) -> Ok res in
       Def.Patch_context_exit (x, res) |> push
 
-  let restore_context _ ~expected_context_hash:_ ~nb_context_elements:_ ~fd:_ =
+  let restore_context _ ~expected_context_hash:_ ~nb_context_elements:_ ~fd:_
+      ~legacy:_ ~in_memory:_ ~progress_display_mode:_ =
     Lwt.return @@ fun _res ->
     Def.Unhandled Recorder.Restore_context |> push ;
     Lwt.return_unit
 
-  let dump_context _ _ ~fd:_ =
+  let dump_context _ _ ~fd:_ ~on_disk:_ ~progress_display_mode:_ =
     let before = system_wide_now () in
     Lwt.return @@ fun _res ->
     let after = system_wide_now () in

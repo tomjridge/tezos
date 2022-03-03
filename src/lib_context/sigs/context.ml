@@ -611,7 +611,7 @@ module type MACHIN = sig
   val empty : index -> t
 
   (** Returns [true] if the context is empty. *)
-  val is_empty : t -> bool
+  val is_empty : context -> bool
 
   (** {2 Accessing and Updating Versions} *)
 
@@ -756,4 +756,10 @@ module type MACHIN = sig
   }
 
   val module_tree_stats : unit -> module_tree_stats
+
+  type memory_tree
+
+  (** Extract a subtree from the {!Tezos_context.Context.t} argument and returns
+      it as a {!Tezos_context_memory.Context.tree} (note the the type change!). **)
+  val to_memory_tree : t -> string list -> memory_tree option Lwt.t
 end

@@ -23,10 +23,7 @@
 (*                                                                           *)
 (*****************************************************************************)
 
-let ( let* ) = ( >>= )
-
-let ( let+ ) = ( >|= )
-
+open Lwt_syntax
 module Def = Stats_trace_definition
 
 (** Stats trace writer, to be instanciated from replay or from tezos-node using
@@ -200,8 +197,7 @@ module Writer (Impl : Tezos_context_sigs.Context.MACHIN) = struct
         {utime; stime; maxrss; minflt; majflt; inblock; oublock; nvcsw; nivcsw}
 
     let now () =
-      Mtime_clock.now () |> Mtime.to_uint64_ns |> Int64.to_float
-      |> ( *. ) 1e-9
+      Mtime_clock.now () |> Mtime.to_uint64_ns |> Int64.to_float |> ( *. ) 1e-9
 
     let create store_path prev_merge_durations =
       Def.
@@ -226,9 +222,8 @@ module Writer (Impl : Tezos_context_sigs.Context.MACHIN) = struct
   let create_store_before context =
     let+ Impl.{nodes; leafs; skips; depth; width} =
       (* This call directly targets [Impl], it will not be recorded *)
-      Impl.find_tree context [] >>= function
-      | None -> assert false
-      | Some t -> Impl.tree_stats t
+      let* tree = Impl.find_tree context [] in
+      match tree with None -> assert false | Some t -> Impl.tree_stats t
     in
     Def.{nodes; leafs; skips; depth; width}
 
@@ -238,7 +233,9 @@ module Writer (Impl : Tezos_context_sigs.Context.MACHIN) = struct
         (fun (_, steps) ->
           (* This call directly targets [Impl], it will not be recorded. *)
           Lwt.catch
-            (fun () -> Impl.length context steps >|= Float.of_int)
+            (fun () ->
+              let+ f = Impl.length context steps in
+              Float.of_int f)
             (fun _exn -> Lwt.return Float.nan))
         Def.step_list_per_watched_node
     in
@@ -738,13 +735,14 @@ struct
     (* Stats_collector.patch_context_end (get_writer ()); *)
     ()
 
-  let restore_context _ ~expected_context_hash:_ ~nb_context_elements:_ ~fd:_ =
+  let restore_context _ ~expected_context_hash:_ ~nb_context_elements:_ ~fd:_
+      ~legacy:_ ~in_memory:_ ~progress_display_mode:_ =
     direct_op_begin () ;
     Lwt.return @@ fun _res ->
     direct_op_end `Restore_context ;
     Lwt.return_unit
 
-  let dump_context _ _ ~fd:_ =
+  let dump_context _ _ ~fd:_ ~on_disk:_ ~progress_display_mode:_ =
     dump_context_begin () ;
     Lwt.return @@ fun _res ->
     dump_context_end () ;

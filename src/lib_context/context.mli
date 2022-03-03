@@ -32,10 +32,7 @@ type error +=
 module Make : functor
   (Encoding : module type of Tezos_context_encoding.Context)
   -> sig
-  include Tezos_context_sigs.Context.MACHIN
-
-  (** Extract a subtree from the {!Tezos_context.Context.t} argument and returns
-      it as a {!Tezos_context_memory.Context.tree} (note the the type change!). **)
-  val to_memory_tree :
-    t -> string list -> Tezos_context_memory.Context.tree option Lwt.t
+  include
+    Tezos_context_sigs.Context.MACHIN
+      with type memory_tree = Tezos_context_memory.Context.tree
 end
