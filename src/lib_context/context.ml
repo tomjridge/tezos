@@ -288,9 +288,25 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
     let commit = P.Commit_portable.v ~parents ~node ~info in
     Hash.to_context_hash (Commit_hash.hash commit)
 
+  (* Every n commits, we trigger gc *)
+  let counter = ref 1
+  let n = 1000
+
+  let trigger_gc' : Store.repo -> string -> unit = (match Store.trigger_gc with None -> Stdlib.failwith __LOC__ | Some x -> x)
+
   let commit ~time ?message context =
     let open Lwt_syntax in
     let+ commit = raw_commit ~time ?message context in
+    let _for_layers = 
+      Printf.printf "%s: commit\n%!" __FILE__;
+      incr counter;
+      if !counter mod n = 0 then begin
+        let repo = context.index.repo in
+        let commit_hash_s = Store.Commit.hash commit |> (Repr.to_string Commit_hash.t) in
+        trigger_gc' repo commit_hash_s;
+        ()
+      end
+    in    
     Hash.to_context_hash (Store.Commit.hash commit)
 
   (*-- Generic Store Primitives ------------------------------------------------*)
