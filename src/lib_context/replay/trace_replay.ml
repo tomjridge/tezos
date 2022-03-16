@@ -643,9 +643,9 @@ struct
       if row.uses_patch_context then Some patch_context else None
     in
     let store_dir = Filename.concat rs.config.artefacts_dir "store" in
-    assert (Raw_config.v.indexing_strategy = `Always) ;
     let* index =
-      Context.init (* ~indexing_strategy:Raw_config.v.indexing_strategy *)
+      Context.init
+        ~indexing_strategy:Raw_config.v.indexing_strategy
         ~readonly
         ?patch_context
         store_dir
@@ -901,7 +901,9 @@ struct
         (* 6 - compute the summary, *)
         let stats_path = Stat_recorder.get_stat_path () in
         Some
-          (Trace_stats_summary.summarise ~info:(false, block_count, true) stats_path))
+          (Trace_stats_summary.summarise
+             ~info:(false, block_count, true)
+             stats_path))
       else None
     in
 

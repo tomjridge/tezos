@@ -255,7 +255,11 @@ module type S = sig
   val commit_test_chain_genesis :
     context -> Block_header.t -> Block_header.t output
 
-  val init : readonly:bool option -> string -> Impl.index output
+  val init :
+    readonly:bool option ->
+    ?indexing_strategy:[`Minimal | `Always | `Contents] ->
+    string ->
+    Impl.index output
 
   val patch_context : context -> context tzresult output
 

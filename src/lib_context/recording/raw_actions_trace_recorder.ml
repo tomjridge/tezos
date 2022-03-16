@@ -335,7 +335,7 @@ struct
       in
       Def.Commit_test_chain_genesis (((x, y), ()), {before; after}) |> push
 
-  let init ~readonly _path _res =
+  let init ~readonly ?indexing_strategy:_ _path _res =
     let readonly = match readonly with Some true -> true | _ -> false in
     setup_writer () ;
     Def.Init (readonly, ()) |> push

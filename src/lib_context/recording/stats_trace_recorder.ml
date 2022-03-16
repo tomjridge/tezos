@@ -725,7 +725,7 @@ struct
     fun _res -> direct_op_end `Commit_test_chain_genesis
 
   (** Not simple direct *)
-  let init ~readonly:_ path =
+  let init ~readonly:_ ?indexing_strategy:_ path =
     setup_writer path ;
     direct_op_begin () ;
     fun _res -> direct_op_end `Init

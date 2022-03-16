@@ -686,8 +686,7 @@ module Make
     in
     let record_and_return_output =
       iter_recorders
-        (fun (module R) ->
-          R.init ~readonly (* TODO: maiste (~indexing_strategy) *) x)
+        (fun (module R) -> R.init ~readonly ~indexing_strategy x)
         Fun.id
     in
     Impl.init
