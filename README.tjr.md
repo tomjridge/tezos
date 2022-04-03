@@ -26,9 +26,11 @@ src/lib_context/... (lots eg encoding/dune)
 
 
 
-# lib_store
+# lib_store (depends on lib_context)
 
 See src/lib_store/README.md
+
+See src/lib_store/README.tjr.md
 
 See https://tezos.gitlab.io/shell/storage.html
 

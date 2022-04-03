@@ -14,3 +14,8 @@ And then tezos-context (this dir) depends on sigs, helpers, encoding
 See `tezos_context.ml` for the intf - just two modules public, context and context_dump.
 
 https://tezos.gitlab.io/api/api-inline.html for whole ocamldoc
+
+
+# context.ml
+
+Uses Store.Repo.v
