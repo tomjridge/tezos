@@ -292,8 +292,6 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
   let counter = ref 1
   let n = 1000
 
-  let trigger_gc' : Store.repo -> string -> unit = (match Store.trigger_gc with None -> Stdlib.failwith __LOC__ | Some x -> x)
-
   let commit ~time ?message context =
     let open Lwt_syntax in
     let+ commit = raw_commit ~time ?message context in
@@ -303,7 +301,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
       if !counter mod n = 0 then begin
         let repo = context.index.repo in
         let commit_hash_s = Store.Commit.hash commit |> (Repr.to_string Commit_hash.t) in
-        trigger_gc' repo commit_hash_s;
+        Store.trigger_gc repo commit_hash_s;
         ()
       end
     in    
