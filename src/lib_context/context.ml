@@ -340,7 +340,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
 
   (* Every n commits, we trigger gc *)
   let counter = ref 1
-  let n = 1000
+  let n = 100
 
   let commit ~time ?message context =
     let open Lwt_syntax in
