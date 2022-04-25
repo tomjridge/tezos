@@ -139,11 +139,11 @@ module Indexing_strategy : sig
 
   val get : unit -> t
 
-  type irmin_t := Irmin_pack.Pack_store.Indexing_strategy.t
+  type irmin_t := Irmin_pack.Indexing_strategy.t
 
   val to_irmin : t -> irmin_t
 end = struct
-  module I = Irmin_pack.Pack_store.Indexing_strategy
+  module I = Irmin_pack.Indexing_strategy
 
   let singleton = ref `Minimal
 
@@ -338,9 +338,23 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
     let commit = P.Commit_portable.v ~parents ~node ~info in
     Hash.to_context_hash (Commit_hash.hash commit)
 
+  (* Every n commits, we trigger gc *)
+  let counter = ref 1
+  let n = 1000
+
   let commit ~time ?message context =
     let open Lwt_syntax in
     let+ commit = raw_commit ~time ?message context in
+    let _for_layers = 
+      Printf.printf "%s: commit\n%!" __FILE__;
+      incr counter;
+      if !counter mod n = 0 then begin
+        let repo = context.index.repo in
+        let commit_hash_s = Store.Commit.hash commit |> (Repr.to_string Commit_hash.t) in
+        Store.trigger_gc repo commit_hash_s;
+        ()
+      end
+    in
     Hash.to_context_hash (Store.Commit.hash commit)
 
   (*-- Generic Store Primitives ------------------------------------------------*)
