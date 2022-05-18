@@ -122,8 +122,6 @@ module type VIEW = sig
     'a Lwt.t
 
   (** {2 Configuration} *)
-  val to_memory_tree :
-    t -> string list -> Tezos_context_memory.Context.tree option Lwt.t
 
   (** [config t] is [t]'s hash configuration. *)
   val config : t -> Config.t
@@ -607,6 +605,13 @@ module type MACHIN = sig
     Block_services.merkle_leaf_kind ->
     key ->
     Block_services.merkle_tree Lwt.t
+
+  (** Build an empty context from an index. The resulting context should not
+      be committed. *)
+  val empty : index -> t
+
+  (** Returns [true] if the context is empty. *)
+  val is_empty : t -> bool
 
   (** {2 Accessing and Updating Versions} *)
 
