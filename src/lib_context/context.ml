@@ -621,12 +621,14 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
         Option.value_f indexing_strategy ~default:Indexing_strategy.get
         |> Indexing_strategy.to_irmin
       in
-      let index_log_size = Option.value tbl_log_size ~default:!index_log_size in
+      let index_log_size =
+        Option.value tbl_log_size ~default:Env.(v.index_log_size)
+      in
       Store.Repo.v
         (Irmin_pack.config
            ~readonly
            ~indexing_strategy
-           ~index_log_size:Env.(v.index_log_size)
+           ~index_log_size
            ~lru_size:Env.(v.lru_size)
            root)
     in
