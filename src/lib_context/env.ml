@@ -23,11 +23,21 @@
 (*                                                                           *)
 (*****************************************************************************)
 
+module Indexing_strategy = struct
+  (* Determines the policy used to determine whether to add new
+     objects to Irmin's index whenever they are exported to the
+     data file. *)
+  type t =
+    [ `Minimal  (** only newly-exported commit objects are added to the index *)
+    | `Always  (** all newly-exported objects are added to the index *) ]
+end
+
 type t = {
   verbosity : [`Default | `Info | `Debug];
   index_log_size : int;
   lru_size : int;
   auto_flush : int;
+  indexing_strategy : Indexing_strategy.t;
 }
 
 (* Caps the number of entries stored in the Irmin's index. As a
@@ -48,7 +58,14 @@ let lru_size = 5_000
    will have to be garbage collected later on to save space. *)
 let auto_flush = 10_000
 
-let default = {verbosity = `Default; index_log_size; lru_size; auto_flush}
+let default =
+  {
+    verbosity = `Default;
+    index_log_size;
+    lru_size;
+    auto_flush;
+    indexing_strategy = `Minimal;
+  }
 
 let max_verbosity a b =
   match (a, b) with
@@ -98,6 +115,16 @@ let v =
                         n ;
                       acc
                   | Some v -> {acc with auto_flush = v})
+              | ["indexing-strategy"; n] -> (
+                  match n with
+                  | "always" -> {acc with indexing_strategy = `Always}
+                  | "minimal" -> {acc with indexing_strategy = `Minimal}
+                  | x ->
+                      Fmt.epr
+                        "[WARNING]  Unable to parse indexing strategy '%s'. \
+                         Expected one of { 'always', 'minimal' }."
+                        x ;
+                      acc)
               | unknown :: _ ->
                   Fmt.epr
                     "[WARNING] Unknow option %s detected in the environment \

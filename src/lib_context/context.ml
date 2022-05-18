@@ -107,45 +107,6 @@ let reporter () =
   in
   {Logs.report}
 
-module Indexing_strategy : sig
-  (* Determines the policy used to determine whether to add new
-     objects to Irmin's index whenever they are exported to the
-     data file. *)
-  type t :=
-    [ `Minimal  (** only newly-exported commit objects are added to the index *)
-    | `Always  (** all newly-exported objects are added to the index *) ]
-
-  val parse : string -> (t, string) result
-
-  val set : t -> unit
-
-  val get : unit -> t
-
-  type irmin_t := Irmin_pack.Pack_store.Indexing_strategy.t
-
-  val to_irmin : t -> irmin_t
-end = struct
-  module I = Irmin_pack.Pack_store.Indexing_strategy
-
-  let singleton = ref `Minimal
-
-  let set x = singleton := x
-
-  let get () = !singleton
-
-  let parse = function
-    | "always" -> Ok `Always
-    | "minimal" -> Ok `Minimal
-    | x ->
-        Error
-          (Fmt.str
-             "Unable to parse indexing strategy '%s'. Expected one of { \
-              'always', 'minimal' }."
-             x)
-
-  let to_irmin = function `Always -> I.always | `Minimal -> I.minimal
-end
-
 let () =
   match Env.(v.verbosity) with
   | `Info ->
@@ -613,13 +574,17 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
 
   (*-- Initialisation ----------------------------------------------------------*)
 
-  let init ?patch_context ?(readonly = false) ?indexing_strategy
+  let init ?patch_context ?(readonly = false)
+      ?(indexing_strategy : Env.Indexing_strategy.t option)
       ?index_log_size:tbl_log_size root =
     let open Lwt_syntax in
+    let module I = Irmin_pack.Pack_store.Indexing_strategy in
     let+ repo =
-      let indexing_strategy =
-        Option.value_f indexing_strategy ~default:Indexing_strategy.get
-        |> Indexing_strategy.to_irmin
+      let indexing_strategy : I.t =
+        Option.value indexing_strategy ~default:Env.(v.indexing_strategy)
+        |> function
+        | `Always -> I.always
+        | `Minimal -> I.minimal
       in
       let index_log_size =
         Option.value tbl_log_size ~default:Env.(v.index_log_size)
@@ -895,9 +860,8 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
     type import = Snapshot.Import.process
 
     let v_import ?(in_memory = false) idx =
-      let indexing_strategy = Indexing_strategy.get () in
       let on_disk =
-        match indexing_strategy with
+        match Env.v.indexing_strategy with
         | `Always ->
             Some `Reuse
             (* reuse index when importing a snaphot with the always indexing
