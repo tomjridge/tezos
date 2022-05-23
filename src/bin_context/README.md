@@ -106,7 +106,7 @@ will generate a stats trace and a summary and print it.
 ### Replay
 
 ```shell
- $ dune exec -- src/bin_context/replay.exe /path/to/trace /path/to/context_dir
+ $ dune exec -- src/bin_context/replay.exe /path/to/trace artefacts_dir --startup-store-copy=/path/to/context_dir
 ```
 
 The stats trace produced can be used with `manage_stats` to generate a te
