@@ -23,6 +23,12 @@
 (*                                                                           *)
 (*****************************************************************************)
 
+open Lwt_syntax
+
+let ( >|= ) = ( let+ )
+
+let ( >>= ) = ( let* )
+
 (** Handling of [tzstats.com] queries during conversion of a raw actions trace
     to a replayable actions trace.
 

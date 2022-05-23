@@ -24,6 +24,13 @@
 (*****************************************************************************)
 
 open Cmdliner
+
+let deprecated_info = (Term.info [@alert "-deprecated"])
+
+let deprecated_exit = (Term.exit [@alert "-deprecated"])
+
+let deprecated_eval_choice = (Term.eval_choice [@alert "-deprecated"])
+
 module Rawdef = Tezos_context_recording.Raw_actions_trace_definition
 module Summary = Tezos_context_replay.Trace_raw_actions_summary
 module Trace_raw_actions_to_replayable =
@@ -167,7 +174,7 @@ let term_classify =
 
 let () =
   let man = [] in
-  let i = Term.info ~man ~doc:"Processing of actions traces." "actions" in
+  let i = deprecated_info ~man ~doc:"Processing of actions traces." "actions" in
 
   let man =
     [
@@ -178,7 +185,7 @@ let () =
          >./raw_actions_summary.json";
     ]
   in
-  let j = Term.info ~man ~doc:"Raw Actions Summary" "summarise" in
+  let j = deprecated_info ~man ~doc:"Raw Actions Summary" "summarise" in
 
   let man =
     [
@@ -189,16 +196,18 @@ let () =
          >./replayable_actions.trace ";
     ]
   in
-  let k = Term.info ~man ~doc:"Replayable Actions Trace" "to-replayable" in
+  let k =
+    deprecated_info ~man ~doc:"Replayable Actions Trace" "to-replayable"
+  in
 
   let man = [`P "List the operations from a raw actions trace (directory)."] in
-  let l = Term.info ~man ~doc:"List Raw Actions" "list" in
+  let l = deprecated_info ~man ~doc:"List Raw Actions" "list" in
 
   let man = [`P "Expose the type (RO, RW or Misc) of a raw trace."] in
-  let m = Term.info ~man ~doc:"Check raw trace type" "classify" in
+  let m = deprecated_info ~man ~doc:"Check raw trace type" "classify" in
 
-  Term.exit
-  @@ Term.eval_choice
+  deprecated_exit
+  @@ deprecated_eval_choice
        (term_summarise, i)
        [
          (term_summarise, j);

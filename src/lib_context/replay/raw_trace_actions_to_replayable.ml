@@ -624,8 +624,12 @@ let event_infos =
   | Unhandled Legacy_restore_contexts
   | Unhandled Legacy_get_protocol_data_from_header
   | Unhandled Legacy_dump_snapshot
-  | Unhandled (Produce_tree_proof|Verify_tree_proof|Produce_stream_proof|
-  Verify_stream_proof) ->
+  | Unhandled
+      ( Produce_tree_proof | Verify_tree_proof | Produce_stream_proof
+      | Verify_stream_proof )
+  | Unhandled
+      ( Tree_config | Tree_kinded_key | Index_empty | Context_is_empty | Config
+      | Equal_config | To_memory_tree ) ->
       crash
 
 (* TODO: ignore everything or crash on some cases? *)

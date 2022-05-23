@@ -65,6 +65,12 @@ let pp paths named_paths cols_opt =
 
 open Cmdliner
 
+let deprecated_info = (Term.info [@alert "-deprecated"])
+
+let deprecated_exit = (Term.exit [@alert "-deprecated"])
+
+let deprecated_eval_choice = (Term.eval_choice [@alert "-deprecated"])
+
 let term_summarise =
   let stats_trace_file =
     let doc = Arg.info ~docv:"PATH" ~doc:"A stats trace file" [] in
@@ -106,7 +112,7 @@ let term_pp =
 let () =
   let man = [] in
   let i =
-    Term.info
+    deprecated_info
       ~man
       ~doc:"Processing of stats traces and stats trace summaries."
       "stats"
@@ -119,7 +125,7 @@ let () =
       `P "manage_stats.exe summarise run0.repr > run0.json";
     ]
   in
-  let j = Term.info ~man ~doc:"Stats Trace to Summary" "summarise" in
+  let j = deprecated_info ~man ~doc:"Stats Trace to Summary" "summarise" in
 
   let man =
     [
@@ -139,6 +145,8 @@ let () =
       `P "manage_stats.exe pp -f r0,run0.json -f r1,run1.json";
     ]
   in
-  let k = Term.info ~man ~doc:"Comparative Pretty Printing" "pp" in
-  Term.exit
-  @@ Term.eval_choice (term_summarise, i) [(term_summarise, j); (term_pp, k)]
+  let k = deprecated_info ~man ~doc:"Comparative Pretty Printing" "pp" in
+  deprecated_exit
+  @@ deprecated_eval_choice
+       (term_summarise, i)
+       [(term_summarise, j); (term_pp, k)]

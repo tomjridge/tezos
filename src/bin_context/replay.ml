@@ -24,6 +24,13 @@
 (*****************************************************************************)
 
 open Cmdliner
+
+let deprecated_info = (Term.info [@alert "-deprecated"])
+
+let deprecated_eval = (Term.eval [@alert "-deprecated"])
+
+let deprecated_exit = (Term.exit [@alert "-deprecated"])
+
 module Trace_replay = Tezos_context_replay.Trace_replay
 
 type indexing_strategy = Always | Minimal | Contents
@@ -60,7 +67,7 @@ let main indexing_strategy block_count startup_store_type replayable_trace_path
           }
       end)
   in
-  Replay.run ()
+  Lwt_main.run (Replay.run ())
 
 let indexing_strategy =
   let doc = "Specify the indexing_strategy to run when doing the replay." in
@@ -179,6 +186,7 @@ let main_t =
 
 let () =
   let info =
-    Term.info ~doc:"Replay operation from a raw actions trace." "replay"
+    deprecated_info ~doc:"Replay operation from a raw actions trace." "replay"
   in
-  Term.exit @@ Term.eval (main_t, info)
+  let res = deprecated_eval (main_t, info) in
+  deprecated_exit res

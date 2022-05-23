@@ -136,7 +136,10 @@ let open_reader max_block_count path =
   in
   (version, block_count, header, Seq.unfold aux (ops_seq, 0))
 
-module Make (Context : Tezos_context_sigs.Context.MACHIN) (Raw_config : Config) =
+module Make
+    (Context : Tezos_context_sigs.Context.MACHIN
+                 with type memory_tree = Tezos_context_memory.Context.tree)
+    (Raw_config : Config) =
 struct
   module type RECORDER =
     Tezos_context_recording.Recorder.S with module Impl = Context
@@ -303,7 +306,7 @@ struct
             `Tree
               (bindings |> List.to_seq
               |> Seq.map (fun (k, v) -> (k, conv v))
-              |> TzString.Map.of_seq)
+              |> String.Map.of_seq)
       in
       let raw = conv raw in
       let tr' = Context.Tree.of_raw raw in
@@ -640,10 +643,9 @@ struct
       if row.uses_patch_context then Some patch_context else None
     in
     let store_dir = Filename.concat rs.config.artefacts_dir "store" in
-    assert (Raw_config.v.indexing_strategy = `Always);
+    assert (Raw_config.v.indexing_strategy = `Always) ;
     let* index =
-      Context.init
-        (* ~indexing_strategy:Raw_config.v.indexing_strategy *)
+      Context.init (* ~indexing_strategy:Raw_config.v.indexing_strategy *)
         ~readonly
         ?patch_context
         store_dir

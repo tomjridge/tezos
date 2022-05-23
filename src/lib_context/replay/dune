@@ -3,6 +3,7 @@
  (public_name tezos-context.replay)
  (libraries tezos-base
             tezos-context.sigs
+            tezos-context.memory
             tezos-context.recording
             cohttp-lwt-unix
             progress
