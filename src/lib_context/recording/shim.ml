@@ -669,8 +669,8 @@ module Make
 
   (* [__ ~~ _o_] *)
 
-  let init ?patch_context:user_patch_context_opt ?readonly ?indexing_strategy
-      ?index_log_size x =
+  let init ?patch_context:user_patch_context_opt ?readonly
+      ?(indexing_strategy = `Minimal) ?index_log_size x =
     let create_local_patch_context user_patch_context ctx =
       let ctx = Context_traced.wrap ctx in
       let record_and_return_output =
@@ -692,7 +692,7 @@ module Make
     Impl.init
       ?patch_context:local_patch_context_opt
       ?readonly
-      ?indexing_strategy
+      ~indexing_strategy
       ?index_log_size
       x
     >|= fun res -> record_and_return_output res |> Index_abstract.wrap

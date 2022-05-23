@@ -603,8 +603,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
 
   (*-- Initialisation ----------------------------------------------------------*)
 
-  let init ?patch_context ?(readonly = false)
-      ?(indexing_strategy : Env.Indexing_strategy.t option)
+  let init ?patch_context ?(readonly = false) ?indexing_strategy
       ?index_log_size:tbl_log_size root =
     let open Lwt_syntax in
     let module I = Irmin_pack.Pack_store.Indexing_strategy in

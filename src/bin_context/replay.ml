@@ -45,7 +45,7 @@ let main indexing_strategy block_count startup_store_type replayable_trace_path
     match indexing_strategy with
     | Always -> `Always
     | Minimal -> `Minimal
-    | Contents -> `Contents
+    | Contents -> `Minimal
   in
   let module Replay =
     Trace_replay.Make

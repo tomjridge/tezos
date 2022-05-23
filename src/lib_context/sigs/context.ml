@@ -568,7 +568,7 @@ module type MACHIN = sig
   val init :
     ?patch_context:(context -> context tzresult Lwt.t) ->
     ?readonly:bool ->
-    ?indexing_strategy:[`Minimal | `Always | `Contents] ->
+    ?indexing_strategy:[`Minimal | `Always] ->
     ?index_log_size:int ->
     string ->
     index Lwt.t

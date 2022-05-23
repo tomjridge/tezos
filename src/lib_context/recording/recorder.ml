@@ -257,7 +257,7 @@ module type S = sig
 
   val init :
     readonly:bool option ->
-    ?indexing_strategy:[`Minimal | `Always | `Contents] ->
+    ?indexing_strategy:[`Minimal | `Always] ->
     string ->
     Impl.index output
 
