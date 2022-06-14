@@ -606,7 +606,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
   let init ?patch_context ?(readonly = false) ?indexing_strategy
       ?index_log_size:tbl_log_size root =
     let open Lwt_syntax in
-    let module I = Irmin_pack.Pack_store.Indexing_strategy in
+    let module I = Irmin_pack.Indexing_strategy in
     let+ repo =
       let indexing_strategy : I.t =
         Option.value indexing_strategy ~default:Env.(v.indexing_strategy)
@@ -908,7 +908,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
       let* key = Snapshot.Import.save_elt import snapshot in
       Store.Tree.of_key idx.repo (`Node key)
 
-    let close_import import = Snapshot.Import.close import
+    let close_import import index = Snapshot.Import.close import index.repo
 
     let make_context index = empty index
 
