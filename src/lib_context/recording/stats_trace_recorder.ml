@@ -68,19 +68,26 @@ module Writer (Impl : Tezos_context_sigs.Context.MACHIN) = struct
 
   module Bag_of_stats = struct
     let pack () =
-      let open Irmin_pack.Stats in
-      let v = get () in
-      let cache_misses = Find.cache_misses v.finds in
+      let open Irmin_pack_unix.Stats in
+      let v : Irmin_pack.Stats.Inode.t =
+        let v = Irmin_pack.Stats.get () in
+        Irmin_pack.Stats.Inode.export v.inode
+      in
+      let v_unix =
+        let v = get () in
+        Pack_store.export v.pack_store
+      in
+      let cache_misses = Pack_store.cache_misses v_unix in
       Def.
         {
-          finds_total = v.finds.total;
-          finds_from_staging = v.finds.from_staging;
-          finds_from_lru = v.finds.from_lru;
-          finds_from_pack_direct = v.finds.from_pack_direct;
-          finds_from_pack_indexed = v.finds.from_pack_indexed;
+          finds_total = v_unix.total;
+          finds_from_staging = v_unix.from_staging;
+          finds_from_lru = v_unix.from_lru;
+          finds_from_pack_direct = v_unix.from_pack_direct;
+          finds_from_pack_indexed = v_unix.from_pack_indexed;
           cache_misses;
-          appended_hashes = v.appended_hashes;
-          appended_offsets = v.appended_offsets;
+          appended_hashes = v_unix.appended_hashes;
+          appended_offsets = v_unix.appended_offsets;
           inode_add = v.inode_add;
           inode_remove = v.inode_remove;
           inode_of_seq = v.inode_of_seq;
