@@ -626,6 +626,8 @@ module type MACHIN = sig
   val commit :
     time:Time.Protocol.t -> ?message:string -> context -> Context_hash.t Lwt.t
 
+  val gc : index -> Context_hash.t -> unit Lwt.t
+
   val set_head : index -> Chain_id.t -> Context_hash.t -> unit Lwt.t
 
   val set_master : index -> Context_hash.t -> unit Lwt.t

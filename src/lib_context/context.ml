@@ -181,7 +181,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
     ["predecessor_ops_metadata_hash"]
 
   let sync index =
-    if index.readonly then Store.sync index.repo ;
+    if index.readonly then Store.reload index.repo ;
     Lwt.return ()
 
   let exists index key =
@@ -258,6 +258,20 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
     let open Lwt_syntax in
     let+ commit = raw_commit ~time ?message context in
     Hash.to_context_hash (Store.Commit.hash commit)
+
+ let gc index context_hash =
+    let open Lwt_syntax in
+    let repo = index.repo in
+    let* o =
+      Store.Commit.of_hash index.repo (Hash.of_context_hash context_hash)
+    in
+    match o with
+    | None -> assert false
+    | Some commit ->
+        let commit_key = Store.Commit.key commit in
+        Format.printf "Trigger GC for commit %a@." Context_hash.pp context_hash ;
+        Store.gc repo commit_key ;
+        Lwt.return_unit
 
   (*-- Generic Store Primitives ------------------------------------------------*)
 
