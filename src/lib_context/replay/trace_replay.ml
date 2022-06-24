@@ -623,11 +623,36 @@ struct
     on_rhs_hash rs hash hash' ;
     Lwt.return_unit
 
+  (* Append every 4000 commits a new one. *)
+  let (consume_block, append_block) =
+    let queue = ref [] in
+    let consume () =
+      match !queue with
+      | hd :: tl ->
+          queue := tl ;
+          hd
+      | _ -> assert false
+    in
+    let append hash = queue := !queue @ [hash] in
+    (consume, append)
+
+  let call_gc_every_4000_blocks c block_level =
+    if block_level > 20_000 && block_level mod 4_000 = 0 then (
+      let hash = consume_block () in
+      Fmt.epr "Calling gc on level %d\n%!" block_level ;
+      Context.gc c hash)
+    else Lwt.return_unit
+
+  let append_gc_block hash block_level =
+    if block_level > 4_000 && block_level mod 4_000 = 0 then append_block hash
+
   let exec_commit rs ((time, message, c), hash) =
     Stat_recorder.set_stat_specs (specs_of_row rs.current_row) ;
     let time = Time.Protocol.of_seconds time in
     let c = on_lhs_context rs c in
     let* hash' = Context.commit ~time ?message c in
+    append_gc_block hash' rs.current_row.level ;
+    let* () = call_gc_every_4000_blocks rs.index rs.current_row.level in
     on_rhs_hash rs hash hash' ;
     Lwt.return_unit
 
