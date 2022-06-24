@@ -831,4 +831,6 @@ module Make
   let get_hash_version _ = assert false
 
   let set_hash_version _ = assert false
+
+  let gc x y = Impl.gc (Index_abstract.unwrap x) y
 end
