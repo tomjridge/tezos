@@ -254,10 +254,27 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
     let commit = P.Commit_portable.v ~parents ~node ~info in
     Hash.to_context_hash (Commit_hash.hash commit)
 
+   let finalise_gc_and_log repo context_hash =
+    let open Lwt_syntax in
+    Lwt.catch (fun () ->
+        let* wait = Store.finalise_gc ~wait:false repo in
+        (if wait then
+           Format.printf
+             "Gc ended on commit %a@." Context_hash.pp context_hash);
+        Lwt.return_unit)
+     (function
+        | Irmin_pack_unix.Errors.Pack_error error ->
+            Format.printf "Finalising Gc error %a@."
+              Irmin_pack_unix.Errors.pp_base_error error;
+            Lwt.return_unit
+        | exn -> raise exn)
+
   let commit ~time ?message context =
     let open Lwt_syntax in
-    let+ commit = raw_commit ~time ?message context in
-    Hash.to_context_hash (Store.Commit.hash commit)
+    let* commit = raw_commit ~time ?message context in
+    let hash = Hash.to_context_hash (Store.Commit.hash commit) in
+    let+ () = finalise_gc_and_log context.index.repo hash in
+    hash
 
  let gc index context_hash =
     let open Lwt_syntax in
@@ -270,7 +287,7 @@ module Make (Encoding : module type of Tezos_context_encoding.Context) = struct
     | Some commit ->
         let commit_key = Store.Commit.key commit in
         Format.printf "Trigger GC for commit %a@." Context_hash.pp context_hash ;
-        Store.gc repo commit_key ;
+        let* _ = Store.start_gc ~throttle:`Block repo commit_key in
         Lwt.return_unit
 
   (*-- Generic Store Primitives ------------------------------------------------*)
