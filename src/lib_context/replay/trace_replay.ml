@@ -636,15 +636,18 @@ struct
     let append hash = queue := !queue @ [hash] in
     (consume, append)
 
+  let cycle = 8191
+  let start_after_6_cycles = 6 * 8191
+
   let call_gc_every_4000_blocks c block_level =
-    if block_level > 20_000 && block_level mod 4_000 = 0 then (
+    if block_level > start_after_6_cycles && block_level mod cycle = 0 then (
       let hash = consume_block () in
       Fmt.epr "Calling gc on level %d\n%!" block_level ;
       Context.gc c hash)
     else Lwt.return_unit
 
   let append_gc_block hash block_level =
-    if block_level > 4_000 && block_level mod 4_000 = 0 then append_block hash
+    if block_level > cycle && block_level mod cycle = 0 then append_block hash
 
   let exec_commit rs ((time, message, c), hash) =
     Stat_recorder.set_stat_specs (specs_of_row rs.current_row) ;
